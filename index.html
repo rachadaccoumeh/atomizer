@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>rachad canvas</title>
+    <meta charset="utf-8" />
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        canvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas">
+		your browser does not support my game
+	</canvas>
+    <script>
+        const c = document.getElementById("canvas");
+        var ctx = c.getContext("2d");
+        var square = new Square(20, 20, 100, 100);
+        var circles = [];
+
+        function init() {
+            for (var i = 0; i < 25; i++) {
+                var r = getRndFloat(10, 20);
+                circles[circles.length] = new Circle(getRndFloat(r, c.width - r), getRndFloat(r, c.height - r), r);
+            }
+        }
+
+        window.addEventListener("load", function() {
+            resize();
+            init();
+            loop();
+
+        });
+        window.addEventListener("resize", resize);
+
+        function resize() {
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            if (w > h) {
+                c.width = c.height = h;
+            } else {
+                c.width = c.height = w;
+            }
+        }
+
+
+
+        function loop() {
+
+            ctx.clearRect(0, 0, c.width, c.height);
+            connect();
+            for (let i = 0; i < circles.length; i++) {
+                circles[i].update();
+                circles[i].draw();
+            }
+            window.requestAnimationFrame(loop);
+        }
+
+        function Square(x, y, w, h) {
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+            this.vx = 0;
+            this.ax = 0.05;
+            this.draw = function() {
+                ctx.strokeRect(this.x, this.y, this.w, this.h);
+            }
+            this.update = function() {
+                this.x += this.vx;
+                if (this.x + this.w / 2 >= c.width) {
+                    this.x = -this.w / 2;
+                }
+                //   if (this.vx < 10) {
+                this.vx += this.ax;
+                //     }
+            }
+        }
+
+        function Circle(x, y, r) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            this.vx = getRndFloat(1, 6);
+            this.vy = getRndFloat(1, 6);
+            this.hue = getRndFloat(0, 359);
+
+            this.draw = function() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+                //ctx.stroke();
+                ctx.fillStyle = "hsl(" + this.hue.toFixed(1) + ",100%,50%)";
+                ctx.fill();
+            }
+            this.update = function() {
+                this.x += this.vx;
+                this.y += this.vy;
+                /*if (this.x + this.r >= c.width) {
+                    this.x = this.r;
+                }*/
+                if (this.x + this.r >= c.width) {
+                    this.vx *= -1;
+                }
+                if (this.x - this.r <= 0) {
+                    this.vx *= -1;
+                }
+                if (this.y + this.r >= c.height) {
+                    this.vy *= -1;
+                }
+                if (this.y - this.r <= 0) {
+                    this.vy *= -1;
+                }
+                this.hue += 0.5;
+            }
+        }
+
+        function connect() {
+            for (var i1 = 0; i1 < circles.length; i1++) {
+                for (let i2 = 0; i2 < circles.length; i2++) {
+                    var c1 = circles[i1];
+                    var c2 = circles[i2];
+                    var dx = c1.x - c2.x;
+                    var dy = c1.y - c2.y;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    var maxDis = (c.width + c.height) / 6;
+                    if (distance < maxDis) {
+                        var percent = 1 - (distance / maxDis);
+                        ctx.lineWidth = 20 * percent;
+                        ctx.beginPath();
+                        ctx.moveTo(c1.x, c1.y);
+                        ctx.lineTo(c2.x, c2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function getRndFloat(min, max) {
+            return Math.random() * (max - min + 1) + min;
+        }
+    </script>
+</body>
+
+</html>
